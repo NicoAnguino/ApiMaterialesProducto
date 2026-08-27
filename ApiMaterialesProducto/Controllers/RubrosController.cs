@@ -16,133 +16,115 @@ namespace ApiMaterialesProducto.Controllers
     [ApiController]
     public class RubrosController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProductoService _academicoService;
 
-        public RubrosController(ApplicationDbContext context)
+        public RubrosController(IProductoService academicoService)
         {
-            _context = context;
+            _academicoService = academicoService;
         }
 
         // GET: api/Rubros
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Rubro>>> GetRubro()
+        public async Task<IActionResult> GetRubro()
         {
-            //List<VistaRubro> vistaRubros = new List<VistaRubro>();
+            var resultado = await _academicoService.ObtenerRubrosAsync();
 
-            var rubros = await _context.Rubros.Where(a => a.Eliminado == false).OrderBy(n => n.Descripcion).ToListAsync();
-
-            // foreach (var Rubro in Rubros)
-            // {
-            //     var elemento = new VistaRubro
-            //     {
-            //         RubroID = Rubro.RubroID,
-            //         Descripcion = Rubro.Descripcion,
-            //         Eliminado = Rubro.Eliminado
-            //     };
-            //     vistaRubros.Add(elemento);
-            // }
-
-            return rubros;
+            return Ok(resultado);
         }
 
-        // GET: api/Rubros/5
+        //GET: api/Rubros/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Rubro>> GetRubro(int id)
         {
-            var rubro = await _context.Rubros.FindAsync(id);
+            var resultado = await _academicoService.ObtenerRubroPorIdAsync(id);
 
-            if (rubro == null)
-            {
-                return NotFound();
-            }
-
-            return rubro;
+            return Ok(resultado);
         }
 
 
 
-        // PUT: api/Rubros/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutRubro(int id, Rubro rubro)
-        {
-            if (id != rubro.RubroID)
-            {
-                return BadRequest();
-            }
+        // // PUT: api/Rubros/5
+        // [HttpPut("{id}")]
+        // public async Task<IActionResult> PutRubro(int id, Rubro rubro)
+        // {
+        //     if (id != rubro.RubroID)
+        //     {
+        //         return BadRequest();
+        //     }
 
-            if (!string.IsNullOrEmpty(rubro.Descripcion))
-            {
-                rubro.Descripcion = rubro.Descripcion?.ToUpper();
-            }
+        //     if (!string.IsNullOrEmpty(rubro.Descripcion))
+        //     {
+        //         rubro.Descripcion = rubro.Descripcion?.ToUpper();
+        //     }
 
-            var rubroExiste = await _context.Rubros.Where(t => t.Descripcion == rubro.Descripcion && t.RubroID != rubro.RubroID).FirstOrDefaultAsync();
+        //     var rubroExiste = await _context.Rubros.Where(t => t.Descripcion == rubro.Descripcion && t.RubroID != rubro.RubroID).FirstOrDefaultAsync();
 
-            if (rubroExiste != null)
-            {
-                return Conflict(new { mensaje = "Ya existe un rubro con esa descripción." });
-            }
+        //     if (rubroExiste != null)
+        //     {
+        //         return Conflict(new { mensaje = "Ya existe un rubro con esa descripción." });
+        //     }
 
-            _context.Entry(rubro).State = EntityState.Modified;
+        //     _context.Entry(rubro).State = EntityState.Modified;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!RubroExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+        //     try
+        //     {
+        //         await _context.SaveChangesAsync();
+        //     }
+        //     catch (DbUpdateConcurrencyException)
+        //     {
+        //         if (!RubroExists(id))
+        //         {
+        //             return NotFound();
+        //         }
+        //         else
+        //         {
+        //             throw;
+        //         }
+        //     }
 
-            return NoContent();
-        }
+        //     return NoContent();
+        // }
 
-        [HttpPost]
-        public async Task<ActionResult<Rubro>> PostRubro(Rubro rubro)
-        {
+        // [HttpPost]
+        // public async Task<ActionResult<Rubro>> PostRubro(Rubro rubro)
+        // {
 
-            if (!string.IsNullOrEmpty(rubro.Descripcion))
-            {
-                rubro.Descripcion = rubro.Descripcion?.ToUpper();
-            }
+        //     if (!string.IsNullOrEmpty(rubro.Descripcion))
+        //     {
+        //         rubro.Descripcion = rubro.Descripcion?.ToUpper();
+        //     }
 
-            var rubroExiste = await _context.Rubros.Where(t => t.Descripcion == rubro.Descripcion).FirstOrDefaultAsync();
+        //     var rubroExiste = await _context.Rubros.Where(t => t.Descripcion == rubro.Descripcion).FirstOrDefaultAsync();
 
-            if (rubroExiste != null)
-            {
-                return Conflict(new { mensaje = "Ya existe un rubro con esa descripción." });
-            }
+        //     if (rubroExiste != null)
+        //     {
+        //         return Conflict(new { mensaje = "Ya existe un rubro con esa descripción." });
+        //     }
 
-            _context.Rubros.Add(rubro);
-            await _context.SaveChangesAsync();
+        //     _context.Rubros.Add(rubro);
+        //     await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetRubro", new { id = rubro.RubroID }, rubro);
-        }
+        //     return CreatedAtAction("GetRubro", new { id = rubro.RubroID }, rubro);
+        // }
 
-        // DELETE: api/Rubros/5 esta seccion del aplicativo no se usa el delete
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRubro(int id)
-        {
-            var rubro = await _context.Rubros.FindAsync(id);
-            if (rubro == null)
-            {
-                return NotFound();
-            }
-            rubro.Eliminado = true;
-            await _context.SaveChangesAsync();
+        // // DELETE: api/Rubros/5 esta seccion del aplicativo no se usa el delete
+        // [HttpDelete("{id}")]
+        // public async Task<IActionResult> DeleteRubro(int id)
+        // {
+        //     var rubro = await _context.Rubros.FindAsync(id);
+        //     if (rubro == null)
+        //     {
+        //         return NotFound();
+        //     }
+        //     rubro.Eliminado = true;
+        //     await _context.SaveChangesAsync();
 
-            return Ok();
-        }
+        //     return Ok();
+        // }
 
-        private bool RubroExists(int id)
-        {
-            return _context.Rubros.Any(e => e.RubroID == id);
-        }
+        // private bool RubroExists(int id)
+        // {
+        //     return _context.Rubros.Any(e => e.RubroID == id);
+        // }
     }
 }

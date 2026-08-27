@@ -8,7 +8,7 @@ async function ObtenerRubros() {
 
   const respuesta = await authFetch("/rubros");
 
-  const rubros = await respuesta.json();
+  const resultado = await respuesta.json();
 
   LimpiarModal();
 
@@ -17,11 +17,11 @@ async function ObtenerRubros() {
   const bodyRubros = document.getElementById("tbody-rubros");
   bodyRubros.innerHTML = "";
 
-  rubros.forEach((rubro) => {
+  resultado.datos.forEach((rubro) => {
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-            <td>${rubro.descripcion}</td>
+            <td>${rubro.descripcion} (ROL: ${resultado.rol})</td>
             <td class="text-center columnaBtn">
  <button class="btn btn-editar" onclick="AbrirModalEditar(${rubro.rubroID})">
         <i class="fa-solid fa-pen"></i>       
@@ -66,10 +66,10 @@ async function AbrirModalEditar(id) {
       throw new Error("No se pudo obtener el dato");
     }
 
-    const rubro = await respuesta.json();
+    const resultado = await respuesta.json();
     document.getElementById("titulo-modal").textContent = "EDITAR RUBRO";
-    document.getElementById("rubroID").value = rubro.rubroID;
-    document.getElementById("rubroNombre").value = rubro.descripcion;
+    document.getElementById("rubroID").value = resultado.datos.rubroID;
+    document.getElementById("rubroNombre").value = resultado.datos.descripcion;
 
     var modal = bootstrap.Modal.getOrCreateInstance(
       document.getElementById('modalRubro')

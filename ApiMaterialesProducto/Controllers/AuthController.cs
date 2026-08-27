@@ -17,23 +17,43 @@ using System.Text;
 [ApiController]
 public class AuthController : ControllerBase
 {
+    private readonly ApplicationDbContext _context;
+
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly RoleManager<IdentityRole> _rolManager;
     private readonly IConfiguration _configuration;
 
     public AuthController(
+        ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
+         RoleManager<IdentityRole> rolManager,
         IConfiguration configuration)
     {
+         _context = context;
         _userManager = userManager;
         _signInManager = signInManager;
+          _rolManager = rolManager;
         _configuration = configuration;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
+ //CREAR ROLES SI NO EXISTEN
+        var nombreRolCrearExiste = _context.Roles.Where(r => r.Name == "ADMINISTRADOR").SingleOrDefault();
+        if (nombreRolCrearExiste == null)
+        {
+            var roleResult = await _rolManager.CreateAsync(new IdentityRole("ADMINISTRADOR"));
+        }
+
+        var clienteRolCrearExiste = _context.Roles.Where(r => r.Name == "OPERARIO").SingleOrDefault();
+        if (clienteRolCrearExiste == null)
+        {
+            var roleResult = await _rolManager.CreateAsync(new IdentityRole("OPERARIO"));
+        }
+
         //ARMAMOS EL OBJETO COMPLETANDO LOS ATRIBUTOS COMPLETADOS POR EL USUARIO
         var user = new ApplicationUser
         {
@@ -46,7 +66,17 @@ public class AuthController : ControllerBase
         var result = await _userManager.CreateAsync(user, model.Password);
 
         if (result.Succeeded)
+        {
+            if (user.Email == "admin@gmail.com")
+            {
+                await _userManager.AddToRoleAsync(user, "ADMINISTRADOR");
+            }
+            else
+            {
+                await _userManager.AddToRoleAsync(user, "OPERARIO");
+            }
             return Ok("Usuario registrado");
+        }
 
         return BadRequest(result.Errors);
     }
@@ -58,12 +88,22 @@ public class AuthController : ControllerBase
         var user = await _userManager.FindByEmailAsync(model.Email);
         if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
         {
+            string rolNombre = "ADMIN";
+            //BUSCAR ROL QUE TIENE
+            var rolUsuario = _context.UserRoles.Where(r => r.UserId == user.Id).SingleOrDefault();
+            if (rolUsuario != null)
+            {
+                var rol = _context.Roles.Where(r => r.Id == rolUsuario.RoleId).SingleOrDefault();
+                rolNombre = rol.Name;
+            }
+
             //SI EL USUARIO ES ENCONTRADO Y LA CONTRASEÑA ES CORRECTA
             var claims = new[]
             {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName),
             new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, rolNombre),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -127,12 +167,22 @@ public class AuthController : ControllerBase
         if (savedToken != model.RefreshToken)
             return Unauthorized("Refresh token inválido");
 
+             string rolNombre = "ADMIN";
+            //BUSCAR ROL QUE TIENE
+            var rolUsuario = _context.UserRoles.Where(r => r.UserId == user.Id).SingleOrDefault();
+            if (rolUsuario != null)
+            {
+                var rol = _context.Roles.Where(r => r.Id == rolUsuario.RoleId).SingleOrDefault();
+                rolNombre = rol.Name;
+            }
+
         //GENERAMOS EL NUEVO TOKEN DE ACCESO PRINCIPAL
         var claims = new[]
         {
          new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName),
             new Claim(ClaimTypes.Email, user.Email),
+             new Claim(ClaimTypes.Role, rolNombre),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
     };
 

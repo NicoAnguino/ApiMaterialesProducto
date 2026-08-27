@@ -10,6 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Permite consultar los Claims/Roles dentro de los servicios
+builder.Services.AddHttpContextAccessor();
+// Registras tus servicios por módulo
+builder.Services.AddScoped<IProductoService, ProductoService>();
+
     // Configuración Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(
     options =>

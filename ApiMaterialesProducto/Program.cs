@@ -13,7 +13,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Permite consultar los Claims/Roles dentro de los servicios
 builder.Services.AddHttpContextAccessor();
 // Registras tus servicios por módulo
-builder.Services.AddScoped<IProductoService, ProductoService>();
+//builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<Program>()
+    // Escanea todas las clases que terminen con "Service"
+    .AddClasses(classes => classes.Where(c => c.Name.EndsWith("Service")))
+    // Las registra automáticamente con la interfaz que implementan (ej: RubroService -> IRubroService)
+    .AsImplementedInterfaces()
+    // Define la vida del servicio (Scoped es el estándar para Web API)
+    .WithScopedLifetime()
+);
 
     // Configuración Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(

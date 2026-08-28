@@ -111,6 +111,11 @@ async function Guardar() {
         body: JSON.stringify(rubro)
       });
 
+      let resultado = await res.json();
+      if(!resultado.esExitoso){
+        alert(resultado.mensaje);
+      }
+
     }
 
     ObtenerRubros();

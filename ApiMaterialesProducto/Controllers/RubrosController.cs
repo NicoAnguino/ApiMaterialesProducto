@@ -85,27 +85,19 @@ namespace ApiMaterialesProducto.Controllers
         //     return NoContent();
         // }
 
-        // [HttpPost]
-        // public async Task<ActionResult<Rubro>> PostRubro(Rubro rubro)
-        // {
+        [HttpPost]
+        public async Task<ActionResult<RespuestaConsultaDto<RubroDto>>> PostRubro(RubroDto rubroDto)
+        {
+            var resultado = await _academicoService.CrearRubroAsync(rubroDto);
 
-        //     if (!string.IsNullOrEmpty(rubro.Descripcion))
-        //     {
-        //         rubro.Descripcion = rubro.Descripcion?.ToUpper();
-        //     }
+            // Si hubo un error de validación o duplicado en el servicio
+            if (!resultado.EsExitoso) 
+            {
+                return BadRequest(resultado); // o Conflict(resultado)
+            }
 
-        //     var rubroExiste = await _context.Rubros.Where(t => t.Descripcion == rubro.Descripcion).FirstOrDefaultAsync();
-
-        //     if (rubroExiste != null)
-        //     {
-        //         return Conflict(new { mensaje = "Ya existe un rubro con esa descripción." });
-        //     }
-
-        //     _context.Rubros.Add(rubro);
-        //     await _context.SaveChangesAsync();
-
-        //     return CreatedAtAction("GetRubro", new { id = rubro.RubroID }, rubro);
-        // }
+            return CreatedAtAction("GetRubro", new { id = resultado.Datos.RubroID }, resultado);
+        }
 
         // // DELETE: api/Rubros/5 esta seccion del aplicativo no se usa el delete
         // [HttpDelete("{id}")]

@@ -22,7 +22,25 @@ public abstract class BaseService
         {
             //Rol = user?.Identity?.Name ?? "Anónimo",
             Rol = roleName,
+            EsExitoso = true,
+            Mensaje = "",
             Datos = datos
+        };
+    }
+
+    protected RespuestaConsultaDto<T> ResponderError<T>(string mensaje)
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        // Opción recomendada usando ClaimTypes
+        string roleName = user?.FindFirst(ClaimTypes.Role)?.Value;
+
+        return new RespuestaConsultaDto<T>
+        {
+            Rol = roleName,
+            EsExitoso = false,
+            Mensaje = mensaje,
+            Datos = default
         };
     }
 }

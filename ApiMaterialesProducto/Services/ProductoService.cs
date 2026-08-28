@@ -85,6 +85,15 @@ public class ProductoService : BaseService, IProductoService
             rubroDto.Descripcion = rubroDto.Descripcion?.ToUpper();
         }
 
+        // 1. Buscar la entidad existente de forma asíncrona
+        var rubro = await _context.Rubros.FirstOrDefaultAsync(r => r.RubroID == id);
+
+        if (rubro == null)
+        {
+            return ResponderError<RubroDto>("El rubro especificado no existe.");
+        }
+
+        // 2. Validar que la nueva descripción no pertenezca a OTRO rubro
         var existe = await _context.Rubros.AnyAsync(t => t.Descripcion == rubroDto.Descripcion && t.RubroID != rubroDto.RubroID);
 
         if (existe)
@@ -93,13 +102,9 @@ public class ProductoService : BaseService, IProductoService
             return ResponderError<RubroDto>("Ya existe un rubro con esa descripción.");
         }
 
-        var rubro = _context.Rubros.Where(r => r.RubroID == id).SingleOrDefault();
-        if (rubro != null)
-        {
-            rubro.Descripcion = rubroDto.Descripcion;
-            await _context.SaveChangesAsync();
-        }
-       
+        rubro.Descripcion = rubroDto.Descripcion;
+        await _context.SaveChangesAsync();
+
         return Responder(rubroDto);
     }
 }

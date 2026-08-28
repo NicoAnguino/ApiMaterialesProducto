@@ -104,6 +104,11 @@ async function Guardar() {
         method: "PUT",
         body: JSON.stringify(rubro)
       });
+
+       let resultado = await res.json();
+      if(!resultado.esExitoso){
+        alert(resultado.mensaje);
+      }
     }
     else {
       const res = await authFetch(`/Rubros`, {

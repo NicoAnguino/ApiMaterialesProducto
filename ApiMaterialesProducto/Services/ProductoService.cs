@@ -6,6 +6,7 @@ public interface IProductoService
     Task<RespuestaConsultaDto<List<RubroDto>>> ObtenerRubrosAsync();
     Task<RespuestaConsultaDto<RubroDto>> ObtenerRubroPorIdAsync(int id);
     Task<RespuestaConsultaDto<RubroDto>> CrearRubroAsync(RubroDto rubroDto);
+    Task<RespuestaConsultaDto<RubroDto>> EditarRubroAsync(int id, RubroDto rubroDto);
 }
 
 public class ProductoService : BaseService, IProductoService
@@ -74,6 +75,31 @@ public class ProductoService : BaseService, IProductoService
 
         rubroDto.RubroID = rubro.RubroID;
 
+        return Responder(rubroDto);
+    }
+
+    public async Task<RespuestaConsultaDto<RubroDto>> EditarRubroAsync(int id, RubroDto rubroDto)
+    {
+        if (!string.IsNullOrEmpty(rubroDto.Descripcion))
+        {
+            rubroDto.Descripcion = rubroDto.Descripcion?.ToUpper();
+        }
+
+        var existe = await _context.Rubros.AnyAsync(t => t.Descripcion == rubroDto.Descripcion && t.RubroID != rubroDto.RubroID);
+
+        if (existe)
+        {
+            // Retorna tu DTO de respuesta indicando el error sin usar sintaxis HTTP
+            return ResponderError<RubroDto>("Ya existe un rubro con esa descripción.");
+        }
+
+        var rubro = _context.Rubros.Where(r => r.RubroID == id).SingleOrDefault();
+        if (rubro != null)
+        {
+            rubro.Descripcion = rubroDto.Descripcion;
+            await _context.SaveChangesAsync();
+        }
+       
         return Responder(rubroDto);
     }
 }

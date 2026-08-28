@@ -41,49 +41,25 @@ namespace ApiMaterialesProducto.Controllers
             return Ok(resultado);
         }
 
-
-
         // // PUT: api/Rubros/5
-        // [HttpPut("{id}")]
-        // public async Task<IActionResult> PutRubro(int id, Rubro rubro)
-        // {
-        //     if (id != rubro.RubroID)
-        //     {
-        //         return BadRequest();
-        //     }
+        [HttpPut("{id}")]
+        public async Task<ActionResult<RespuestaConsultaDto<RubroDto>>> PutRubro(int id, RubroDto rubroDto)
+        {
+            if (id != rubroDto.RubroID)
+            {
+                return BadRequest();
+            }
 
-        //     if (!string.IsNullOrEmpty(rubro.Descripcion))
-        //     {
-        //         rubro.Descripcion = rubro.Descripcion?.ToUpper();
-        //     }
+            var resultado = await _academicoService.EditarRubroAsync(id, rubroDto);
 
-        //     var rubroExiste = await _context.Rubros.Where(t => t.Descripcion == rubro.Descripcion && t.RubroID != rubro.RubroID).FirstOrDefaultAsync();
+            // Si hubo un error de validación o duplicado en el servicio
+            if (!resultado.EsExitoso) 
+            {
+                return BadRequest(resultado); // o Conflict(resultado)
+            }
 
-        //     if (rubroExiste != null)
-        //     {
-        //         return Conflict(new { mensaje = "Ya existe un rubro con esa descripción." });
-        //     }
-
-        //     _context.Entry(rubro).State = EntityState.Modified;
-
-        //     try
-        //     {
-        //         await _context.SaveChangesAsync();
-        //     }
-        //     catch (DbUpdateConcurrencyException)
-        //     {
-        //         if (!RubroExists(id))
-        //         {
-        //             return NotFound();
-        //         }
-        //         else
-        //         {
-        //             throw;
-        //         }
-        //     }
-
-        //     return NoContent();
-        // }
+             return Ok(resultado);
+        }
 
         [HttpPost]
         public async Task<ActionResult<RespuestaConsultaDto<RubroDto>>> PostRubro(RubroDto rubroDto)

@@ -1,19 +1,20 @@
 using ApiMaterialesProducto.Models;
 using Microsoft.EntityFrameworkCore;
 
-public interface IProductoService
+public interface IRubroService
 {
     Task<RespuestaConsultaDto<List<RubroDto>>> ObtenerRubrosAsync();
     Task<RespuestaConsultaDto<RubroDto>> ObtenerRubroPorIdAsync(int id);
     Task<RespuestaConsultaDto<RubroDto>> CrearRubroAsync(RubroDto rubroDto);
     Task<RespuestaConsultaDto<RubroDto>> EditarRubroAsync(int id, RubroDto rubroDto);
+    Task<RespuestaConsultaDto<bool>> EliminarRubroAsync(int id);
 }
 
-public class ProductoService : BaseService, IProductoService
+public class RubroService : BaseService, IRubroService
 {
     private readonly ApplicationDbContext _context;
 
-    public ProductoService(
+    public RubroService(
         ApplicationDbContext context,
         IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
     {
@@ -23,6 +24,7 @@ public class ProductoService : BaseService, IProductoService
     public async Task<RespuestaConsultaDto<List<RubroDto>>> ObtenerRubrosAsync()
     {
         var alumnos = await _context.Rubros
+        .Where(r => !r.Eliminado)
             .Select(a => new RubroDto
             {
                 RubroID = a.RubroID,
@@ -106,5 +108,28 @@ public class ProductoService : BaseService, IProductoService
         await _context.SaveChangesAsync();
 
         return Responder(rubroDto);
+    }
+
+    public async Task<RespuestaConsultaDto<bool>> EliminarRubroAsync(int id)
+    {
+        var rubro = await _context.Rubros.FirstOrDefaultAsync(r => r.RubroID == id && !r.Eliminado);
+
+        if (rubro == null)
+        {
+            return ResponderError<bool>("El rubro especificado no existe o ya fue eliminado.");
+        }
+
+        // Opcional: Validar si el rubro se está usando en otras tablas activas antes de desactivarlo
+        var estaEnUso = await _context.Material.AnyAsync(p => p.RubroID == id && !p.Eliminado);
+        if (estaEnUso)
+        {
+            return ResponderError<bool>("No se puede desactivar el rubro porque tiene productos asociados.");
+        }
+
+        // Inactivar el registro en lugar de removerlo
+        rubro.Eliminado = true;
+        await _context.SaveChangesAsync();
+
+        return Responder(true);
     }
 }

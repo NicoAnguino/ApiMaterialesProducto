@@ -16,9 +16,9 @@ namespace ApiMaterialesProducto.Controllers
     [ApiController]
     public class RubrosController : ControllerBase
     {
-        private readonly IProductoService _academicoService;
+        private readonly IRubroService _academicoService;
 
-        public RubrosController(IProductoService academicoService)
+        public RubrosController(IRubroService academicoService)
         {
             _academicoService = academicoService;
         }
@@ -75,24 +75,13 @@ namespace ApiMaterialesProducto.Controllers
             return CreatedAtAction("GetRubro", new { id = resultado.Datos.RubroID }, resultado);
         }
 
-        // // DELETE: api/Rubros/5 esta seccion del aplicativo no se usa el delete
-        // [HttpDelete("{id}")]
-        // public async Task<IActionResult> DeleteRubro(int id)
-        // {
-        //     var rubro = await _context.Rubros.FindAsync(id);
-        //     if (rubro == null)
-        //     {
-        //         return NotFound();
-        //     }
-        //     rubro.Eliminado = true;
-        //     await _context.SaveChangesAsync();
+        // DELETE: api/Rubros/5 esta seccion del aplicativo no se usa el delete
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteRubro(int id)
+        {
+            var resultado = await _academicoService.EliminarRubroAsync(id);
 
-        //     return Ok();
-        // }
-
-        // private bool RubroExists(int id)
-        // {
-        //     return _context.Rubros.Any(e => e.RubroID == id);
-        // }
+            return Ok(resultado);
+        }
     }
 }
